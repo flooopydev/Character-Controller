@@ -10,7 +10,6 @@ extends CharacterBody3D
 
 #bools
 var crouching := false
-var can_step := true
 var just_jumped := false 
 
 #movemnt
@@ -105,7 +104,7 @@ func _physics_process(delta: float) -> void:
 	update_camera_effects(delta)
 	update_camera_fov(delta)
 	fall_kick(delta)
-	footstep()
+	footstep(delta)
 
 func start_crouch():
 	crouching = true
@@ -150,21 +149,18 @@ func update_camera_effects(delta): #improve headbob
 	var target_tilt = -input_dir.x * deg_to_rad(tilt_amount)
 	camera.rotation.z = lerp_angle(camera.rotation.z, target_tilt, delta * 10.0)
 
-func footstep():
-	if not is_on_floor():
-		return
-	if can_step:
-		if velocity.length() >= 0.1:
-			can_step = false
-			footsteps.play()
-		if velocity.length() == 0.0 and footsteps.playing:
-			footsteps.stop()
-			await get_tree().create_timer(0.2).timeout
-			can_step = true
+var step_timer := 0.0
+var step_interval := 0.5
 
-func _on_audio_stream_player_finished() -> void:
-	await get_tree().create_timer(0.2).timeout
-	can_step = true
+func footstep(delta: float) -> void:
+	if not is_on_floor() or velocity.length() < 0.1:
+		return
+	var speed = velocity.length()
+	var adjusted_interval = clamp(1.0 / (speed * 0.5), 0.25, 0.6)
+	step_timer -= delta
+	if step_timer <= 0.0:
+		footsteps.play()
+		step_timer = adjusted_interval
 
 func fall_kick(delta):
 	if fall_timer > 0.0:
