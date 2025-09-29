@@ -162,4 +162,3 @@ stream = ExtResource("2_8h4do")
 volume_db = -20.0
 pitch_scale = 0.6
 
-[connection signal="finished" from="AudioStreamPlayer" to="." method="_on_audio_stream_player_finished"]
